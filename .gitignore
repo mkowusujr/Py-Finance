@@ -1,0 +1,5 @@
+src/__pycache__/
+venv
+src/money_py.db
+test/__pycache__/
+test/money_py.db
