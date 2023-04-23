@@ -1,10 +1,11 @@
-# Money Py
+# Py Finance
+![logo](logo.png)
+
 A simple budget tracking terminal app written in python
 
 This was built with:
 - [sqlite3](https://docs.python.org/3/library/sqlite3.html)
 - the [argparse](https://docs.python.org/3/library/argparse.html#module-argparse) python library for making CLIs
-- [Recurrent](https://github.com/kvh/recurrent), a natural language parsing of dates and recurring events 
 - my brain B)
 
 # Creating Entries
