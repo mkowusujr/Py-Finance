@@ -14,36 +14,44 @@ This was built with:
 ## Adding Budget
 
 ```shell
-python main.py -budget Groceries -amount 100.00 -date 2023/04/23
+python main.py budget Groceries -amount 100.00 -date 2023/04/23
 ```
 
 The shortened command
 ```shell
-python main.py -b Groceries -a 100.00 -d 2023/04/23
+python main.py Groceries -a 100.00 -d 2023/04/23
 ```
 
 ## Adding Entries
 Entries represent an expense
 ```shell
-python main.py -record -expense Groceries -seller Walmart -amount 36.99 -date 2023/04/23 -category Groceries
+python main.py expense Groceries -seller Walmart -amount 36.99 -date 2023/04/23 -category Groceries
 ```
 
 shortened command
 ```shell
-python main.py -rec -e Groceries -s Walmart -a 36.99 -d 2023/04/23 -c Groceries
+python main.py expense Groceries -s Walmart -a 36.99 -d 2023/04/23 -c Groceries
 ```
 
 # Viewing Entries
-## Display all Entries
+## list all Entries
 ```shell
-python main.py -disp entries
+python main.py list expenses
 ```
 
 You can filter the results by adding option args
 ```shell
-python main.py -disp entries -seller Steam -expense Jedi -category Enterntainment 
+python main.py list expenses -seller Steam -expense Jedi -category Enterntainment 
 ```
 
 ```shell
-python main.py -disp entries -s Steam -e Jedi -c Enterntainment 
+python main.py list expenses -s Steam -e Jedi -c Enterntainment 
+```
+
+```shell
+python main.py list budgets
+```
+
+```shell
+python main.py list budgets -b Groceries
 ```

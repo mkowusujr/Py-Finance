@@ -1,59 +1,81 @@
 import sqlite3
 import os
 
-db_location = "money_py.db"
+db_location = "finance.db"
 
 if os.environ.get('MY_APP_ENV') == 'test':
-    db_location = "test/money_py_test.db"
+    db_location = "test/finance_test.db"
+
 
 def setup_db():
     con = sqlite3.connect(db_location)
     cur = con.cursor()
     cur.executescript("""
-    create table if not exists expenses(
+    CREATE TABLE IF NOT EXISTS expenses(
         expense_id INTEGER PRIMARY KEY,
-        product_service varchar(30) not null,
-        seller varchar(30),
-        price float not null,
-        purchase_date datetime not null,
-        category_id int,
+        expense_name TEXT NOT NULL,
+        seller TEXT,
+        price REAL NOT NULL,
+        purchase_date TEXT NOT NULL,
+        category_id INTEGER,
+        is_reoccurring TEXT,
         foreign key (category_id) references budget(budget_id)
     );
-    create table if not exists budgets(
+    CREATE TABLE IF NOT EXISTS budgets(
         budget_id INTEGER PRIMARY KEY,
-        name varchar(30) not null,
-        budegt_date date not null,
-        budget_amount float not null,
-        constraint uc_category unique (name, budegt_date)
+        budget_name TEXT NOT NULL,
+        budget_date TEXT NOT NULL,
+        budget_amount REAL NOT NULL,
+        is_reoccurring TEXT,
+        constraint uc_category unique (budget_name, budget_date)
+    );
+    CREATE TABLE IF NOT EXISTS incomes(
+        income_id INTEGER PRIMARY KEY,
+        income_name TEXT,
+        income_amount REAL,
+        income_date TEXT,
+        is_reoccurring TEXT
     );
     """)
     cur.close()
 
 
-def add_budget_category(budget_name: str, budget_period: str, budget_amount: float):
+def add_budget(budget_name: str, budget_period: str, budget_amount: float, reoccurring: str):
     con: sqlite3.Connection = sqlite3.connect(db_location)
     cur: sqlite3.Cursor = con.cursor()
 
     cur.execute("""
-    insert into budgets(name, budegt_date, budget_amount)
-    values(?, ?, ?)
-    """, (budget_name, budget_period, budget_amount))
+    insert into budgets(budget_name, budget_date, budget_amount, is_reoccurring)
+    values(?, ?, ?, ?)
+    """, (budget_name, budget_period, budget_amount, reoccurring))
 
     con.commit()
     con.close()
 
 
-def add_expense(product_service: str, seller: str, price: float, purchase_date: str, budget_name: str):
+def add_expense(expense_name: str, seller: str, price: float, purchase_date: str, budget_name: str, reoccurring: str):
     con: sqlite3.Connection = sqlite3.connect(db_location)
     cur: sqlite3.Cursor = con.cursor()
 
     cur.execute("""
-    insert into expenses(product_service, seller, price, purchase_date, category_id)
-    select ?, ?, ?, (?) as cur_year, b.budget_id
+    insert into expenses(expense_name, seller, price, purchase_date, is_reoccurring, category_id)
+    select ?, ?, ?, ?, ?, b.budget_id
     from budgets b
-    where b.name = ?
-    and cur_year = strftime('%Y', b.budegt_date)
-    """, (product_service, seller, price, purchase_date, budget_name))
+    where b.budget_name = ?
+    """, (expense_name, seller, price, purchase_date, reoccurring, budget_name))
+
+    con.commit()
+    con.close()
+
+
+def add_income(income_name: str,  income_amount: float, income_date: str, reoccurring: str):
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    cur.execute("""
+    insert into incomes(income_name, income_amount, income_date, is_reoccurring)
+    values(?, ?, ?, ?)
+    """, (income_name, income_amount, income_date, reoccurring))
 
     con.commit()
     con.close()
@@ -64,14 +86,71 @@ def select_expenses(expense_name: str, seller: str, category: str) -> list[tuple
     cur: sqlite3.Cursor = con.cursor()
 
     expenses = cur.execute("""
-    select e.product_service, e.seller, e.price, e.purchase_date, b.name
+    select e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
     from expenses e
     join budgets b on b.budget_id = e.category_id
-    where e.product_service like ?
+    where e.expense_name like ?
     and e.seller like ?
-    and b.name like ?
+    and b.budget_name like ?
     """, (f'%{expense_name}%', f'%{seller}%', f'%{category}%')).fetchall()
 
     con.close()
     return expenses
 
+
+def select_budgets(budget_name: str) -> list[tuple]:
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    budgets = cur.execute("""
+    select b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
+    from budgets b
+    where b.budget_name like ?
+    """, [f'%{budget_name}%']).fetchall()
+
+    con.close()
+    return budgets
+
+
+def select_incomes(income_name: str) -> list[tuple]:
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    incomes = cur.execute("""
+    select i.income_name, i.income_amount, i.income_date, i.is_reoccurring
+    from incomes i
+    where i.income_name like ?
+    """, [f'%{income_name}%']).fetchall()
+
+    con.close()
+    return incomes
+
+
+def select_reoccurring(search_term: str, show_e: bool, show_b: bool, show_i: bool) -> list[tuple]:
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    expenses = cur.execute("""
+    select e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
+    from expenses e
+    join budgets b on b.budget_id = e.category_id
+    where e.is_reoccurring != 'none'
+    and e.expense_name like ?
+    """, [f'%{search_term}%']).fetchall()
+
+    budgets = cur.execute("""
+    select b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
+    from budgets b
+    where b.is_reoccurring != 'none'
+    and b.budget_name like ?
+    """, [f'%{search_term}%']).fetchall()
+
+    incomes = cur.execute("""
+    select i.income_name, i.income_amount, i.income_date, i.is_reoccurring
+    from incomes i
+    where i.is_reoccurring != 'none'
+    and i.income_name like ?
+    """, [f'%{search_term}%']).fetchall()
+
+    con.close()
+    return expenses if show_e else [], budgets if show_b else [], incomes if show_i else []
