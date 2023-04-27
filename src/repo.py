@@ -65,7 +65,23 @@ def add_expense(expense_name: str, seller: str, price: float, purchase_date: str
     """, (expense_name, seller, price, purchase_date, reoccurring, budget_name))
 
     con.commit()
+
+    spent = cur.execute("""
+    select sum(e.price) as total
+    from expenses e
+    join budgets b on b.budget_id = e.category_id
+    where b.budget_name = ?
+    """, [budget_name]).fetchone()[0]
+    
+    budget = cur.execute("""
+    select b.budget_amount
+    from budgets b
+    where b.budget_name = ?
+    """, [budget_name]).fetchone()[0]
+
     con.close()
+
+    return budget, spent, budget - spent
 
 
 def add_income(income_name: str,  income_amount: float, income_date: str, reoccurring: str):

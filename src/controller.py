@@ -5,8 +5,11 @@ from tabulate import tabulate
 
 def handle_args(options):
     if 'expense' in vars(options):
-        repo.add_expense(options.expense, options.seller,
+        budget, spent, remaining = repo.add_expense(options.expense, options.seller,
                          options.amount, options.date, options.category, options.reoccurring)
+        
+        print(
+            f'Added Successfully\n{options.category} Budget: {budget:.2f}\nSpent: ${spent:.2f}\nRemaing {options.category} Budget: ${remaining:.2f}')
     if 'budget' in vars(options):
         repo.add_budget(
             options.budget, options.date, options.amount, options.reoccurring)
@@ -23,6 +26,11 @@ def handle_args(options):
         expenses_df = pd.DataFrame(expenses, columns=[
                                    'Expense Name', 'Seller', 'Price', 'Purchase Date', 'Budget', 'Reoccurring'])
         print(tabulate(expenses_df, headers='keys', tablefmt='psql'))
+
+        sum = expenses_df['Price'].apply(lambda p: float(p)).sum()
+        avg = expenses_df['Price'].apply(lambda p: float(p)).mean()
+        mode = expenses_df['Expense Name'].mode().tolist()
+        print(f"\nsum: ${sum:.2f}\navg: ${avg:.2f}\nmode: {mode}")
     #     if options.sum is True:
         # total = sum(float(expense[2]) for expense in expenses)
         # print(f'Total: ${total}')
