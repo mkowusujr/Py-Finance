@@ -102,7 +102,7 @@ def select_expenses(expense_name: str, seller: str, category: str) -> list[tuple
     cur: sqlite3.Cursor = con.cursor()
 
     expenses = cur.execute("""
-    select e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
+    select e.expense_id, e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
     from expenses e
     join budgets b on b.budget_id = e.category_id
     where e.expense_name like ?
@@ -119,7 +119,7 @@ def select_budgets(budget_name: str) -> list[tuple]:
     cur: sqlite3.Cursor = con.cursor()
 
     budgets = cur.execute("""
-    select b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
+    select b.budget_id, b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
     from budgets b
     where b.budget_name like ?
     """, [f'%{budget_name}%']).fetchall()
@@ -133,7 +133,7 @@ def select_incomes(income_name: str) -> list[tuple]:
     cur: sqlite3.Cursor = con.cursor()
 
     incomes = cur.execute("""
-    select i.income_name, i.income_amount, i.income_date, i.is_reoccurring
+    select i.income_id, i.income_name, i.income_amount, i.income_date, i.is_reoccurring
     from incomes i
     where i.income_name like ?
     """, [f'%{income_name}%']).fetchall()
@@ -147,7 +147,7 @@ def select_reoccurring(search_term: str, show_e: bool, show_b: bool, show_i: boo
     cur: sqlite3.Cursor = con.cursor()
 
     expenses = cur.execute("""
-    select e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
+    select e.expense_id, e.expense_name, e.seller, e.price, e.purchase_date, b.budget_name, b.is_reoccurring
     from expenses e
     join budgets b on b.budget_id = e.category_id
     where e.is_reoccurring != 'none'
@@ -155,14 +155,14 @@ def select_reoccurring(search_term: str, show_e: bool, show_b: bool, show_i: boo
     """, [f'%{search_term}%']).fetchall()
 
     budgets = cur.execute("""
-    select b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
+    select b.budget_id, b.budget_name, b.budget_amount, b.budget_date, b.is_reoccurring
     from budgets b
     where b.is_reoccurring != 'none'
     and b.budget_name like ?
     """, [f'%{search_term}%']).fetchall()
 
     incomes = cur.execute("""
-    select i.income_name, i.income_amount, i.income_date, i.is_reoccurring
+    select i.income_id, i.income_name, i.income_amount, i.income_date, i.is_reoccurring
     from incomes i
     where i.is_reoccurring != 'none'
     and i.income_name like ?
@@ -170,3 +170,41 @@ def select_reoccurring(search_term: str, show_e: bool, show_b: bool, show_i: boo
 
     con.close()
     return expenses if show_e else [], budgets if show_b else [], incomes if show_i else []
+
+def delete_budget(budget_id: int):
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    cur.execute("""
+    delete from budgets
+    where budget_id = ?
+    """, [budget_id])
+
+    con.commit()
+    con.close()
+
+
+def delete_expense(expense_id: int):
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    cur.execute("""
+    delete from expenses
+    where expense_id = ?
+    """, [expense_id])
+
+    con.commit()
+    con.close()
+
+
+def delete_income(income_id: int):
+    con: sqlite3.Connection = sqlite3.connect(db_location)
+    cur: sqlite3.Cursor = con.cursor()
+
+    cur.execute("""
+    delete from incomes
+    where income_id = ?
+    """, [income_id])
+
+    con.commit()
+    con.close()

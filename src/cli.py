@@ -10,8 +10,11 @@ def setup_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers()
 
-    # list COMMANDS
+    # LIST COMMANDS
     setup_list_cmds(subparsers)
+
+    # DELETE COMMANDS
+    setup_delete_cmds(subparsers)
 
     # UPDATE COMMANDS
     setup_update_cmds(subparsers)
@@ -86,16 +89,31 @@ def setup_update_cmds(subparsers):
     def setup_update_income(update_subparsers):
         pass
 
-    def setup_update_reoccurring(update_subparsers):
-        pass
-
     parser_update = subparsers.add_parser('update')
     update_subparsers = parser_update.add_subparsers()
     setup_update_expense(update_subparsers)
+    setup_update_budget(update_subparsers)
+    setup_update_income(update_subparsers)
 
 
 def setup_delete_cmds(subparsers):
-    pass
+    def setup_delete_budget(delete_subparsers):
+        parser_delete_budget = delete_subparsers.add_parser('budget')
+        parser_delete_budget.add_argument(type=int, dest="delete_budget_id")
+
+    def setup_delete_expense(delete_subparsers):
+        parser_delete_expense = delete_subparsers.add_parser('expense')
+        parser_delete_expense.add_argument(type=int, dest="delete_expense_id")
+
+    def setup_delete_income(delete_subparsers):
+        parser_delete_income = delete_subparsers.add_parser('income')
+        parser_delete_income.add_argument(type=int, dest="delete_income_id")
+
+    parser_delete = subparsers.add_parser('delete')
+    delete_subparsers = parser_delete.add_subparsers()
+    setup_delete_budget(delete_subparsers)
+    setup_delete_expense(delete_subparsers)
+    setup_delete_income(delete_subparsers)
 
 
 def setup_budget_cmds(subparsers):

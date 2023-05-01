@@ -6,8 +6,8 @@ from tabulate import tabulate
 def handle_args(options):
     if 'expense' in vars(options):
         budget, spent, remaining = repo.add_expense(options.expense, options.seller,
-                         options.amount, options.date, options.category, options.reoccurring)
-        
+                                                    options.amount, options.date, options.category, options.reoccurring)
+
         print(
             f'Added Successfully\n{options.category} Budget: {budget:.2f}\nSpent: ${spent:.2f}\nRemaing {options.category} Budget: ${remaining:.2f}')
     if 'budget' in vars(options):
@@ -24,7 +24,8 @@ def handle_args(options):
         expenses = repo.select_expenses(
             e if e is not None else "", s if s is not None else "", c if c is not None else "")
         expenses_df = pd.DataFrame(expenses, columns=[
-                                   'Expense Name', 'Seller', 'Price', 'Purchase Date', 'Budget', 'Reoccurring'])
+            'Expense ID', 'Expense Name', 'Seller', 'Price', 'Purchase Date', 'Budget', 'Reoccurring']).set_index('Expense ID')
+
         print(tabulate(expenses_df, headers='keys', tablefmt='psql'))
 
         sum = expenses_df['Price'].apply(lambda p: float(p)).sum()
@@ -36,14 +37,14 @@ def handle_args(options):
 
         budgets = repo.select_budgets(b if b is not None else "")
         budgets_df = pd.DataFrame(budgets, columns=[
-            'Budget Name', 'Budget Amount', 'Budget Date', 'Reoccurring'])
+            'Budget ID', 'Budget Name', 'Budget Amount', 'Budget Date', 'Reoccurring']).set_index('Budget ID')
         print(tabulate(budgets_df, headers='keys', tablefmt='psql'))
     if 'list_incomes_i' in vars(options):
         i = options.list_incomes_i
 
         incomes = repo.select_incomes(i if i is not None else "")
         incomes_df = pd.DataFrame(incomes, columns=[
-            'Income Name', 'Income Amount', 'Income Date', 'Reoccurring'])
+            'Income ID', 'Income Name', 'Income Amount', 'Income Date', 'Reoccurring']).set_index('Income ID')
         print(tabulate(incomes_df, headers='keys', tablefmt='psql'))
     if 'list_reoccurring_e' in vars(options):
         s = options.list_reoccurring_s
@@ -55,20 +56,37 @@ def handle_args(options):
             e = b = i = True
 
         reoccurring = repo.select_reoccurring(s, e, b, i)
+        if e:
+            reoccurring_expenses_df = pd.DataFrame(reoccurring[0], columns=[
+                'Expense ID', 'Expense Name', 'Seller', 'Price', 'Purchase Date', 'Budget', 'Reoccurring']).set_index('Expense ID')
+            print(tabulate(reoccurring_expenses_df,
+                  headers='keys', tablefmt='psql'))
+            print('\n\n')
 
-        reoccurring_expenses_df = pd.DataFrame(reoccurring[0], columns=[
-            'Expense Name', 'Seller', 'Price', 'Purchase Date', 'Budget', 'Reoccurring'])
-        print(tabulate(reoccurring_expenses_df, headers='keys', tablefmt='psql'))
+        if b:
+            reoccurring_budgets_df = pd.DataFrame(reoccurring[1], columns=[
+                'Budget ID', 'Budget Name', 'Budget Amount', 'Budget Date', 'Reoccurring']).set_index('Budget ID')
+            print(tabulate(reoccurring_budgets_df,
+                  headers='keys', tablefmt='psql'))
+            print('\n\n')
 
-        print('\n\n')
-        reoccurring_budgets_df = pd.DataFrame(reoccurring[1], columns=[
-            'Budget Name', 'Budget Amount', 'Budget Date', 'Reoccurring'])
-        print(tabulate(reoccurring_budgets_df, headers='keys', tablefmt='psql'))
-        
-        print('\n\n')
-        reoccurring_incomes_df = pd.DataFrame(reoccurring[2], columns=[
-            'Income Name', 'Income Amount', 'Income Date', 'Reoccurring'])
-        print(tabulate(reoccurring_incomes_df, headers='keys', tablefmt='psql'))
+        if i:
+            reoccurring_incomes_df = pd.DataFrame(reoccurring[2], columns=[
+                'Income ID', 'Income Name', 'Income Amount', 'Income Date', 'Reoccurring']).set_index('Income ID')
+            print(tabulate(reoccurring_incomes_df,
+                  headers='keys', tablefmt='psql'))
+    if 'update_budget_id' in vars(options):
+        pass
+    if 'update_expense_id' in vars(options):
+        pass
+    if 'update_income_id' in vars(options):
+        pass
+    if 'delete_budget_id' in vars(options):
+        repo.delete_budget(options.delete_budget_id)
+    if 'delete_expense_id' in vars(options):
+        repo.delete_expense(options.delete_expense_id)
+    if 'delete_income_id' in vars(options):
+        repo.delete_income(options.delete_income_id)
 
 
 def handle_reoccurring_events():
