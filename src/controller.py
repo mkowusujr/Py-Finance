@@ -31,9 +31,6 @@ def handle_args(options):
         avg = expenses_df['Price'].apply(lambda p: float(p)).mean()
         mode = expenses_df['Expense Name'].mode().tolist()
         print(f"\nsum: ${sum:.2f}\navg: ${avg:.2f}\nmode: {mode}")
-    #     if options.sum is True:
-        # total = sum(float(expense[2]) for expense in expenses)
-        # print(f'Total: ${total}')
     if 'list_budgets_b' in vars(options):
         b = options.list_budgets_b
 
